@@ -1,13 +1,5 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.auth.models import AbstractUser
-# Create your models here.
-
-class Guest(models.Model):
-	guest_name = models.CharField(max_length = 50, default = "Guest")
+from django.contrib.auth.models import User, AbstractUser
 
 class User(AbstractUser):
 	pass
@@ -34,7 +26,6 @@ class EliteUser(User):
 	company_description = models.TextField()
 	contact_info = models.TextField()
 
-
 	class Meta:
 		verbose_name = "Elite User"
 		permissions = [
@@ -50,7 +41,6 @@ class UserProfile(models.Model):
 	user = models.OneToOneField(User, on_delete = models.CASCADE)
 	bio = models.TextField()
 	mobile_number = models.CharField(max_length = 10)
-	reading_history = models.ManyToManyField('Book',blank = True)
 
 	def __str__(self):
 		return self.user.username
@@ -76,4 +66,4 @@ class Category(models.Model):
 		ordering = ['category']	
 
 	def __str__(self):
-		return f"{self.category}"
+		return self.category

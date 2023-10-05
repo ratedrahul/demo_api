@@ -25,24 +25,37 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
 	username = serializers.CharField()
-	password = serializers.CharField()
+	password = serializers.CharField(write_only= True)
 
-	def validate(self,data):
-		username = data.get('username')
-		password = data.get('password')
+	# def validate(self,data):
+	# 	username = data.get('username')
+	# 	password = data.get('password')
 
-		user = authenticate(username=username,password= password)
+	# 	user = authenticate(username=username,password= password)
 
-		if not user:
-			raise serializers.ValidationError('Invalid Credentials')
+	# 	if not user:
+	# 		raise serializers.ValidationError('Invalid Credentials')
 
-		data['user'] = user
-		return data
+	# 	data['user'] = user
+	# 	return data
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		fields = ['username','email','password']
+		extra_kwargs = {'password':{'write_only':True}}
+
+
+
+
+
 
 class CategorySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Category
 		fields = '__all__'
+
+
 
 
 
