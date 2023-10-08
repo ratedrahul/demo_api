@@ -9,5 +9,7 @@ admin.site.register(EliteUser)
 admin.site.register(UserProfile)
 admin.site.register(Book)
 admin.site.register(Category)
+admin.site.register(BookAdditionalInfo)
+admin.site.register(Address)
 
 

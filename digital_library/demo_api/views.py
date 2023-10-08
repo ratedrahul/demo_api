@@ -1,14 +1,35 @@
+import os
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken 
-
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model,authenticate,login,logout
 from .models import *
-from .serializers import UserLoginSerializer, UserSerializer, BookSerializer, PaidUserSerializer, StudentSerializer, UserRegisterSerializer, CategorySerializer
+from .serializers import UserLoginSerializer, UserSerializer, BookSerializer, PaidUserSerializer, StudentSerializer, UserRegisterSerializer, CategorySerializer 
+from django.views.generic.list import ListView
+
+class HorrorBookViewSet(viewsets.ReadOnlyModelViewSet):
+	model= Book
+	queryset = Book.objects.filter(category__name = 'Horror')
+	serializer_class = BookSerializer
+
+class EducationBookViewSet(viewsets.ReadOnlyModelViewSet):
+	model= Book
+	queryset = Book.objects.filter(category__name = 'Education')
+	serializer_class = BookSerializer
+
+class CodingBookViewSet(viewsets.ReadOnlyModelViewSet):
+	model= Book
+	queryset = Book.objects.filter(category__name = 'Coding')
+	serializer_class = BookSerializer
+
+class TechBookViewSet(viewsets.ReadOnlyModelViewSet):
+	model= Book
+	queryset = Book.objects.filter(category__name = 'Tech')
+	serializer_class = BookSerializer
 
 
 # Create your views here.
@@ -19,9 +40,24 @@ def homepage(request):
 		return HttpResponse(f'Current logged in username : {current_user} <br>Access token is = {token}')
 	return HttpResponse(f'Not Logged in User<br>Login access token = {token}')
 
+
 class UserViewSet(viewsets.ModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
+
+	def create(self,request,*args,**kwargs):
+		serializer = UserRegisterSerializer(data = request.data)
+
+		if serializer.is_valid():
+			user = get_user_model()(
+				username=serializer.validated_data['username'],
+			)
+			# Encrypting plain password
+			user.set_password(serializer.validated_data['password'])
+			user.save()
+			return Response({'message':"User registered successfully"},status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BookList(APIView):
 	def get(self,request):
@@ -34,7 +70,7 @@ class BookViewSet(viewsets.ModelViewSet):
 	queryset = Book.objects.all()
 	serializer_class = BookSerializer
 	# added jwt authentication
-	permission_classes = (IsAuthenticated,)
+	# permission_classes = (IsAuthenticated,)
 
 	#to show a success message
 	def create(self, request, *args, **kwargs):
@@ -46,6 +82,7 @@ class BookViewSet(viewsets.ModelViewSet):
 			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 
+
 class PaidUserViewSet(viewsets.ModelViewSet):
 	queryset = PaidUser.objects.all()
 	serializer_class = PaidUserSerializer
@@ -54,25 +91,9 @@ class StudentViewSet(viewsets.ModelViewSet):
 	queryset = Student.objects.all()
 	serializer_class = StudentSerializer
 
-
 class CategoryViewSet(viewsets.ModelViewSet):
 	queryset = Category.objects.all()
 	serializer_class = CategorySerializer
-
-class UserRegisterView(APIView):
-
-	def post(self,request,*args,**kwargs):
-		serializer = UserRegisterSerializer(data = request.data)
-
-		if serializer.is_valid():
-			user = get_user_model()(
-				username=serializer.validated_data['username'],
-			)
-			# Encrypting plain password
-			user.set_password(serializer.validated_data['password'])
-			user.save()
-			return Response({'message':"User registered successfully"},status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(TokenObtainPairView):
 	def post(self,request,*args,**kwargs):

@@ -5,10 +5,10 @@ from django.contrib.auth import authenticate
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'is_staff']
-
+        fields = ['username','first_name','password','last_name', 'email']
 
 class BookSerializer(serializers.ModelSerializer):
+	category_name = serializers.ReadOnlyField(source='category.category')
 	class Meta:
 		model = Book
 		fields = '__all__'
@@ -16,12 +16,19 @@ class BookSerializer(serializers.ModelSerializer):
 class PaidUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = PaidUser
+		fields = ['password','username','email','subscription_start_date','subscription_end_date']
+
+class EliteUserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = EliteUser
+		# fields = ['password','username','email','subscription_start_date','subscription_end_date']
 		fields = '__all__'
 
 class StudentSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Student
 		fields = ['username','password','student_id','university']
+
 
 class UserLoginSerializer(serializers.Serializer):
 	username = serializers.CharField()
