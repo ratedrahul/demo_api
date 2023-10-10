@@ -1,36 +1,65 @@
 import os
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model,authenticate,login,logout
+
 from .models import *
-from .serializers import UserLoginSerializer, UserSerializer, BookSerializer, PaidUserSerializer, StudentSerializer, UserRegisterSerializer, CategorySerializer 
-from django.views.generic.list import ListView
+from .pagination import CustomPagination
+from .serializers import UserLoginSerializer, UserSerializer, BookSerializer, PaidUserSerializer, StudentSerializer, UserRegisterSerializer, CategorySerializer, BookInfoSerializer,AddressSerializer
 
-class HorrorBookViewSet(viewsets.ReadOnlyModelViewSet):
-	model= Book
-	queryset = Book.objects.filter(category__name = 'Horror')
+from rest_framework.parsers import MultiPartParser
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
+class BookViewSet(viewsets.ModelViewSet):
+
 	serializer_class = BookSerializer
+	# other filters also can be used
+	# filter_backends = [filters.SearchFilter,filters.OrderingFilter]
+	filterset_fields = ['category', 'category__name']
+	search_fields = ['title']
 
-class EducationBookViewSet(viewsets.ReadOnlyModelViewSet):
-	model= Book
-	queryset = Book.objects.filter(category__name = 'Education')
-	serializer_class = BookSerializer
+	#pagination
+	pagination_class = CustomPagination
 
-class CodingBookViewSet(viewsets.ReadOnlyModelViewSet):
-	model= Book
-	queryset = Book.objects.filter(category__name = 'Coding')
-	serializer_class = BookSerializer
+	#parser
+	parser_classes = [MultiPartParser]
 
-class TechBookViewSet(viewsets.ReadOnlyModelViewSet):
-	model= Book
-	queryset = Book.objects.filter(category__name = 'Tech')
-	serializer_class = BookSerializer
+# 	# added jwt authentication
+	# permission_classes = (IsAuthenticated,)
 
+	# queryset = Book.objects.all()
+	#overriding default queryset
+	def get_queryset(self):
+		response = Book.objects.all()
+		return response
+
+# 	To show a success message overriding default
+	def create(self, request, *args, **kwargs):
+		serializer = self.get_serializer(data=request.data)
+		if serializer.is_valid():
+		
+			# serializer.save(uploader=uploader, category=category)
+			serializer.save()
+			return Response({'message': 'Book uploaded successfully'}, status=status.HTTP_201_CREATED)
+		else:
+			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+
+class BookCRUDView(APIView):
+	def get(self,request):
+		queryset = Book.objects.all()
+		serializer_class = BookSerializer(queryset,many = True)
+		return Response(serializer.data,status = status.HTTP_200_OK)
 
 # Create your views here.
 def homepage(request):
@@ -65,24 +94,6 @@ class BookList(APIView):
 		data= BookSerializer(b,many = True).data
 		return Response(data)
 
-
-class BookViewSet(viewsets.ModelViewSet):
-	queryset = Book.objects.all()
-	serializer_class = BookSerializer
-	# added jwt authentication
-	# permission_classes = (IsAuthenticated,)
-
-	#to show a success message
-	def create(self, request, *args, **kwargs):
-		serializer = self.get_serializer(data=request.data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response({'message': 'Book uploaded successfully'}, status=status.HTTP_201_CREATED)
-		else:
-			return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-
-
-
 class PaidUserViewSet(viewsets.ModelViewSet):
 	queryset = PaidUser.objects.all()
 	serializer_class = PaidUserSerializer
@@ -94,6 +105,19 @@ class StudentViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
 	queryset = Category.objects.all()
 	serializer_class = CategorySerializer
+
+class AddressViewSet(viewsets.ModelViewSet):
+	queryset = Address.objects.all()
+	serializer_class = AddressSerializer
+	filterset_fields = ['user__username','street']
+	filter_backends = [filters.SearchFilter]
+	search_fields = ['pin_code']
+
+class BookInfoViewSet(viewsets.ModelViewSet):
+	queryset = BookAdditionalInfo.objects.all()
+	serializer_class = BookInfoSerializer
+	filterset_fields = ['book__title']
+
 
 class UserLoginView(TokenObtainPairView):
 	def post(self,request,*args,**kwargs):

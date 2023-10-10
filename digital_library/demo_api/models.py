@@ -30,8 +30,7 @@ class EliteUser(User):
 		verbose_name = "Elite User"
 		permissions = [
 	            ("can_upload", "Can upload books"),
-	            ("can_access","Anytime")
-	        ]
+	            ("can_access","Anytime")]
 
 	def __str__(self):
 		return 'EliteUser'
@@ -71,16 +70,18 @@ class Book(models.Model):
 	category = models.ForeignKey('Category',on_delete = models.CASCADE)
 
 	def __str__(self):
-		return self.book_title
+		return self.title
 
 class Category(models.Model):
-	name = models.CharField(max_length = 30, default = 'ALL')
+	name = models.CharField(max_length = 30, default = 'ALL', unique = True)
 
 	class Meta:
 		ordering = ['name']	
 
 	def __str__(self):
-		return self.name
+		book_count = self.book_set.count()
+		return f"{self.name} has {book_count} books"
+
 
 class BookAdditionalInfo(models.Model):
 	book = models.OneToOneField('Book',on_delete = models.CASCADE,null = True, related_name = "book_info")
@@ -90,4 +91,3 @@ class BookAdditionalInfo(models.Model):
 
 	def __str__(self):
 		return f'{self.book.title} is published by {self.publisher} and price {self.price}'
-

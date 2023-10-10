@@ -8,7 +8,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username','first_name','password','last_name', 'email']
 
 class BookSerializer(serializers.ModelSerializer):
-	category_name = serializers.ReadOnlyField(source='category.category')
 	class Meta:
 		model = Book
 		fields = '__all__'
@@ -21,7 +20,6 @@ class PaidUserSerializer(serializers.ModelSerializer):
 class EliteUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = EliteUser
-		# fields = ['password','username','email','subscription_start_date','subscription_end_date']
 		fields = '__all__'
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -53,16 +51,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 		extra_kwargs = {'password':{'write_only':True}}
 
 
-
-
-
-
 class CategorySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Category
 		fields = '__all__'
 
+class BookInfoSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = BookAdditionalInfo
+		fields = '__all__'
 
-
-
-
+class AddressSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Address
+		fields = '__all__'
